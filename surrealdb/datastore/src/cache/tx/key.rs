@@ -46,13 +46,17 @@ pub enum Key {
 	Cgs(NamespaceId, DatabaseId),
 	/// A cache key for parameters (on a database)
 	Pas(NamespaceId, DatabaseId),
+	// AVNIR-PATCH: the variants below are in `Lookup`'s order. The derived `Hash`
+	// hashes the variant index, so a `Lookup` whose variant sits at another index
+	// than its `Key` never finds the entry it inserted (upstream 3.3.0 had `Sqs`
+	// after `DbReferenceTargets` and `TbByName` before `Tb`).
+	/// A cache key for sequences (on a database)
+	Sqs(NamespaceId, DatabaseId),
 	/// A cache key for tables
 	Tbs(NamespaceId, DatabaseId),
 	/// A cache key for the database-wide reference-target summary consumed by
 	/// the DELETE purge gate (which tables any `REFERENCE` field can target).
 	DbReferenceTargets(NamespaceId, DatabaseId),
-	/// A cache key for sequences (on a database)
-	Sqs(NamespaceId, DatabaseId),
 	/// A cache key for events (on a table)
 	Evs(NamespaceId, DatabaseId, String),
 	/// A cache key for fieds (on a table)
@@ -107,10 +111,10 @@ pub enum Key {
 	Pa(NamespaceId, DatabaseId, String),
 	/// A cache key for a sequence (on a database)
 	Sq(NamespaceId, DatabaseId, String),
-	/// A cache key for a table
-	TbByName(String, String, String),
 	/// A cache key for a table by id.
 	Tb(NamespaceId, DatabaseId, String),
+	/// A cache key for a table
+	TbByName(String, String, String),
 	/// A cache key for an event (on a table)
 	Ev(NamespaceId, DatabaseId, String, String),
 	/// A cache key for a fied (on a table)

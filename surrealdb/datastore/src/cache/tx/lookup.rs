@@ -298,4 +298,28 @@ mod tests {
 	fn test_equivalent(#[case] l: Lookup<'_>, #[case] k: Key, #[case] expected: bool) {
 		assert_eq!(l.equivalent(&k), expected);
 	}
+
+	/// AVNIR-PATCH: a lookup hashes exactly like the key it inserts, so the cache can
+	/// find it. The derived `Hash` includes the variant index, so this fails for any
+	/// variant whose position differs between `Lookup` and `Key`.
+	#[rstest]
+	#[case(Lookup::Pas(NamespaceId(1), DatabaseId(1)))]
+	#[case(Lookup::Sqs(NamespaceId(1), DatabaseId(1)))]
+	#[case(Lookup::Tbs(NamespaceId(1), DatabaseId(1)))]
+	#[case(Lookup::DbReferenceTargets(NamespaceId(1), DatabaseId(1)))]
+	#[case(Lookup::Evs(NamespaceId(1), DatabaseId(1), "test"))]
+	#[case(Lookup::Fds(NamespaceId(1), DatabaseId(1), "test"))]
+	#[case(Lookup::Ixs(NamespaceId(1), DatabaseId(1), "test"))]
+	#[case(Lookup::Sq(NamespaceId(1), DatabaseId(1), "test"))]
+	#[case(Lookup::Tb(NamespaceId(1), DatabaseId(1), "test"))]
+	#[case(Lookup::TbByName("test", "test", "test"))]
+	#[case(Lookup::Ev(NamespaceId(1), DatabaseId(1), "test", "test"))]
+	#[case(Lookup::Record(NamespaceId(1), DatabaseId(1), "test", &RecordIdKey::Number(1)))]
+	fn test_lookup_hashes_like_its_key(#[case] l: Lookup<'_>) {
+		use std::hash::{BuildHasher, RandomState};
+		let state = RandomState::new();
+		let lookup = state.hash_one(&l);
+		let key = Key::from(l);
+		assert_eq!(lookup, state.hash_one(&key));
+	}
 }
